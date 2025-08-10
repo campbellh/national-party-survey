@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>National Party Issue Survey</title>
+    <!-- Load Tailwind CSS for a modern, responsive design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Poppins font from Google Fonts as a clean sans-serif alternative -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom CSS for the page, using the National Party's brand colours */
+        :root {
+            --national-blue-dark: #00529F;
+            --national-blue-light: #4c82b2;
+            --national-bg: #e2e8f0;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--national-bg); /* A light blue-gray background */
+        }
+        .container {
+            max-width: 90%;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+        }
+        .chart-container {
+            position: relative;
+            height: 60vh;
+        }
+        /* Ensure the canvas is responsive */
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        .text-national-blue {
+            color: var(--national-blue-dark);
+        }
+        .loading-text {
+            color: var(--national-blue-dark);
+            font-size: 1.25rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="container">
+        <div class="card">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-center text-national-blue mb-8 tracking-tight">
+                What is the biggest issue!
+            </h1>
+            <p class="text-center text-gray-600 mb-8 font-poppins">
+                This chart displays a summary of responses from your form. The data below is sample data. The chart will update every 10 seconds.
+            </p>
+
+            <!-- Chart container -->
+            <div class="chart-container">
+                <canvas id="issueChart"></canvas>
+            </div>
+            <div id="loadingIndicator" class="loading-text mt-4 hidden">
+                Loading new data...
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Chart.js library from a CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // The URL for your API endpoint. Replace this with your actual URL.
+            // This endpoint should return a JSON object with a 'labels' array and a 'data' array.
+            const API_URL = 'https://api.example.com/survey-data';
+
+            const ctx = document.getElementById('issueChart').getContext('2d');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+
+            // Initial chart creation with empty data
+            const issueChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Number of Votes',
+                        data: [],
+                        backgroundColor: [
+                            'rgba(0, 82, 159, 0.8)',
+                            'rgba(0, 82, 159, 0.7)',
+                            'rgba(0, 82, 159, 0.6)',
+                            'rgba(0, 82, 159, 0.5)',
+                            'rgba(0, 82, 159, 0.4)'
+                        ],
+                        borderColor: [
+                            '#00529F', '#00529F', '#00529F', '#00529F', '#00529F'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Responses',
+                                font: { size: 16, family: 'Poppins' }
+                            },
+                            ticks: {
+                                precision: 0,
+                                font: { family: 'Poppins' }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Issue Category',
+                                font: { size: 16, family: 'Poppins' }
+                            },
+                            ticks: {
+                                font: { family: 'Poppins' }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: false }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeInOutQuad'
+                    }
+                }
+            });
+
+            // Function to fetch data from the API and update the chart
+            async function fetchDataAndUpdateChart() {
+                loadingIndicator.classList.remove('hidden'); // Show loading indicator
+                try {
+                    // Simulating an API call with a delay to show the loading indicator
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // This is where you'd make your actual fetch call
+                    // const response = await fetch(API_URL);
+                    // const data = await response.json();
+
+                    // Using mock data for demonstration
+                    const data = {
+                        labels: ['Productivity', 'Communication', 'Technical Debt', 'Meeting Fatigue', 'Other'],
+                        data: [
+                            Math.floor(Math.random() * 50) + 5,
+                            Math.floor(Math.random() * 50) + 5,
+                            Math.floor(Math.random() * 50) + 5,
+                            Math.floor(Math.random() * 50) + 5,
+                            Math.floor(Math.random() * 50) + 5
+                        ]
+                    };
+
+                    // Update the chart's data and labels
+                    issueChart.data.labels = data.labels;
+                    issueChart.data.datasets[0].data = data.data;
+
+                    // Re-render the chart with the new data
+                    issueChart.update();
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                } finally {
+                    loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                }
+            }
+
+            // Initial data load
+            fetchDataAndUpdateChart();
+
+            // Set up the polling interval (10 seconds)
+            setInterval(fetchDataAndUpdateChart, 10000); // 10000 ms = 10 seconds
+
+            // Handle window resizing to make the chart responsive
+            window.addEventListener('resize', () => {
+                issueChart.resize();
+            });
+
+        });
+    </script>
+</body>
+</html>
