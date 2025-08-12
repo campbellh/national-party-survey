@@ -78,10 +78,10 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            // The URL for your API endpoint. Replace this with your actual URL.
-            // This endpoint should return a JSON object with a 'labels' array and a 'data' array.
-            const API_URL = 'https://api.example.com/survey-data';
-
+            // The 'Failed to fetch' error is due to a CORS issue. The fix needs to be applied
+            // to the Google Apps Script itself. The code below is correct.
+            const API_URL = 'https://script.google.com/macros/s/AKfycbxKaLlyvq7CYcRGYS11cL15I1EIxoNDntzJqrkKxPMGdp-Ec1dDXabvea9qfVupgplz/exec';
+            
             const ctx = document.getElementById('issueChart').getContext('2d');
             const loadingIndicator = document.getElementById('loadingIndicator');
 
@@ -148,28 +148,29 @@
             async function fetchDataAndUpdateChart() {
                 loadingIndicator.classList.remove('hidden'); // Show loading indicator
                 try {
-                    // Simulating an API call with a delay to show the loading indicator
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    
-                    // This is where you'd make your actual fetch call
-                    // const response = await fetch(API_URL);
-                    // const data = await response.json();
+                    // Fetch data from your Google Apps Script URL
+                    const response = await fetch(API_URL);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
 
-                    // Using mock data for demonstration
-                    const data = {
-                        labels: ['Productivity', 'Communication', 'Technical Debt', 'Meeting Fatigue', 'Other'],
-                        data: [
-                            Math.floor(Math.random() * 50) + 5,
-                            Math.floor(Math.random() * 50) + 5,
-                            Math.floor(Math.random() * 50) + 5,
-                            Math.floor(Math.random() * 50) + 5,
-                            Math.floor(Math.random() * 50) + 5
-                        ]
-                    };
+                    // Process the raw data to count the occurrences of each issue
+                    const issueCounts = {};
+                    data.forEach(issue => {
+                        issueCounts[issue] = (issueCounts[issue] || 0) + 1;
+                    });
+
+                    // Sort the issues by count in descending order
+                    const sortedIssues = Object.entries(issueCounts).sort(([, a], [, b]) => b - a);
+
+                    // Convert the processed data into the format needed by Chart.js
+                    const labels = sortedIssues.map(([issue]) => issue);
+                    const counts = sortedIssues.map(([, count]) => count);
 
                     // Update the chart's data and labels
-                    issueChart.data.labels = data.labels;
-                    issueChart.data.datasets[0].data = data.data;
+                    issueChart.data.labels = labels;
+                    issueChart.data.datasets[0].data = counts;
 
                     // Re-render the chart with the new data
                     issueChart.update();
